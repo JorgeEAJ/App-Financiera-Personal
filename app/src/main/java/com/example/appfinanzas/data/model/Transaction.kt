@@ -8,6 +8,6 @@ data class Transaction(
     val type: String = "expense", // "income" o "expense"
     val date: Long = System.currentTimeMillis(),
     val description: String = "",
-    val paymentMethod: String = "cash", // "cash", "debit", "credit"
+    val paymentMethod: String = "cash",
     val creditCardId: String? = null,
 )

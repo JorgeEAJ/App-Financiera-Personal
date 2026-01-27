@@ -32,4 +32,10 @@ class TransactionRepository {
                 onUpdate(list)
             }
     }
+    fun deleteTransaction(transactionId: String, onComplete: (Boolean) -> Unit) {
+        firestore.collection("transactions").document(transactionId)
+            .delete()
+            .addOnSuccessListener { onComplete(true) }
+            .addOnFailureListener { onComplete(false) }
+    }
 }

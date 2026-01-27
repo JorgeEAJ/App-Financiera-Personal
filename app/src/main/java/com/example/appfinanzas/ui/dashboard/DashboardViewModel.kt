@@ -7,10 +7,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.appfinanzas.data.firebase.TransactionRepository
+import com.example.appfinanzas.data.firebase.WalletRepository
+import com.example.appfinanzas.data.model.CreditCard
 import com.example.appfinanzas.data.model.Transaction
 
 class DashboardViewModel : ViewModel() {
     private val repository = TransactionRepository()
+    private val repositoryCards = WalletRepository()
 
     // Estados para la UI
     var isLoading by mutableStateOf(false)
@@ -20,25 +23,43 @@ class DashboardViewModel : ViewModel() {
     var regularAmount by mutableDoubleStateOf(0.0)
     var creditAmount by mutableDoubleStateOf(0.0)
     var gastosPorTarjeta by mutableStateOf(emptyMap<String, Double>())
+    var transactions by mutableStateOf(emptyList<Transaction>())
+    var balance by mutableDoubleStateOf(0.0)
+    var totalIncomes by mutableDoubleStateOf(0.0)
+    var totalExpenses by mutableDoubleStateOf(0.0)
+    var walletCards by mutableStateOf<List<CreditCard>>(emptyList())
+        private set
 
     init {
         loadTransactions()
+        loadUserCards()
     }
 
     private fun loadTransactions() {
         repository.getTransactions { list ->
-            // Calculamos los totales
+            transactions = list.sortedByDescending { it.date }
             totalAmount = list.sumOf { it.amount }
-            regularAmount = list.filter { it.paymentMethod == "efectivo" }.sumOf { it.amount }
             creditAmount = list.filter { it.paymentMethod == "tarjeta" }.sumOf { it.amount }
-            gastosPorTarjeta = list
+
+            // Calculamos sumas por tipo
+            totalIncomes = list.filter { it.type == "income" }.sumOf { it.amount }
+            totalExpenses = list.filter { it.type == "expense" }.sumOf { it.amount }
+
+            // El balance neto
+            balance = totalIncomes - totalExpenses
+
+            // Filtramos solo gastos para la gráfica de dona
+            val expenseList = list.filter { it.type == "expense" }
+            regularAmount = expenseList.filter { it.paymentMethod == "efectivo" }.sumOf { it.amount }
+
+            gastosPorTarjeta = expenseList
                 .filter { it.paymentMethod == "tarjeta" && it.creditCardId != null }
                 .groupBy { it.creditCardId!! }
-                .mapValues { entry -> entry.value.sumOf { it.amount } }
+                .mapValues { it.value.sumOf { amount -> amount.amount } }
         }
     }
 
-    fun addExpense(amountStr: String, category: String, method: String, cardId: String?) {
+    fun addExpense(amountStr: String, category: String, method: String, cardId: String?,type: String) {
         val amountValue = amountStr.toDoubleOrNull() ?: 0.0
 
         if (amountValue <= 0.0) {
@@ -54,7 +75,7 @@ class DashboardViewModel : ViewModel() {
             categoryId = category, // Aquí usamos el nombre por ahora
             paymentMethod = method.lowercase(),
             creditCardId = if (method == "Tarjeta") cardId else null,
-            type = "expense"
+            type = type
         )
 
         repository.addTransaction(newTransaction) { success ->
@@ -67,9 +88,18 @@ class DashboardViewModel : ViewModel() {
             }
         }
     }
-
     fun resetStatus() {
         transactionSuccess = false
         errorMessage = null
+    }
+    fun deleteTransaction(id: String) {
+        repository.deleteTransaction(id) { success ->
+            if (!success) errorMessage = "No se pudo eliminar el gasto"
+        }
+    }
+    private fun loadUserCards() {
+        repositoryCards.getCards { list ->
+            walletCards = list
+        }
     }
 }
