@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.appfinanzas.ui.dashboard.components.TopAppBarCustom
+import com.example.appfinanzas.TopAppBarCustom
 import com.example.appfinanzas.ui.dashboard.components.MonthlySummary
 import com.example.appfinanzas.ui.dashboard.components.SpendingBreakdownCard
 import com.example.appfinanzas.ui.dashboard.components.QuickAddExpenseCard
@@ -22,18 +22,13 @@ import com.example.appfinanzas.ui.dashboard.components.TransactionItem
 import com.example.appfinanzas.ui.dashboard.components.AlertItem
 
 @Composable
-fun DashboardContent(
-    onLogout: () -> Unit,
-    viewModel: DashboardViewModel = viewModel()
-) {
+fun DashboardContent(viewModel: DashboardViewModel = viewModel()) {
     Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
                 .verticalScroll(rememberScrollState())
         ) {
-            TopAppBarCustom(onLogout)
-
             MonthlySummary(amount = viewModel.balance)
 
             SpendingBreakdownCard(
@@ -62,6 +57,8 @@ fun DashboardContent(
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Sección de Alertas
             Column(modifier = Modifier.padding(bottom = 16.dp)) {

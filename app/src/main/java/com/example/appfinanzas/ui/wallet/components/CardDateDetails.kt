@@ -33,9 +33,25 @@ import com.example.appfinanzas.ui.theme.DarkGreen
 import com.example.appfinanzas.ui.theme.PrimaryGreen
 import androidx.compose.ui.graphics.Color
 
+import java.util.Calendar
 
 @Composable
 fun CardDateDetails(card: CreditCard) {
+    // LÓGICA DINÁMICA DE FECHAS
+    val calendar = Calendar.getInstance()
+    val currentDay = calendar.get(Calendar.DAY_OF_MONTH)
+    val currentMonth = calendar.getDisplayName(Calendar.MONTH, Calendar.SHORT, java.util.Locale.getDefault())
+
+    // Cálculo simple de días restantes para el pago
+    val daysUntilDue = if (card.dueDay >= currentDay) {
+        card.dueDay - currentDay
+    } else {
+        // Si ya pasó el día en este mes, calculamos para el siguiente (aproximado)
+        (30 - currentDay) + card.dueDay
+    }
+
+    val isUrgent = daysUntilDue <= 3
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -50,24 +66,42 @@ fun CardDateDetails(card: CreditCard) {
                 iconTint = DarkGreen,
                 label = "Fecha de Corte",
                 sublabel = "Día ${card.cutOffDay} de cada mes",
-                value = "Oct ${card.cutOffDay}"
+                value = "$currentMonth ${card.cutOffDay}"
             )
 
-            Divider(modifier = Modifier.padding(horizontal = 16.dp), color = Color.LightGray.copy(alpha = 0.1f))
+            Divider(modifier = Modifier.padding(horizontal = 16.dp), color = Color.LightGray.copy(alpha = 0.05f))
 
-            // Fecha de Pago (Lógica de alerta)
+            // Fecha de Pago Dinámica
             DateRow(
                 icon = Icons.Default.EventBusy,
-                iconBg = Color.Red.copy(alpha = 0.1f),
-                iconTint = Color.Red,
+                iconBg = if (isUrgent) Color.Red.copy(alpha = 0.1f) else Color.Gray.copy(alpha = 0.1f),
+                iconTint = if (isUrgent) Color.Red else Color.Gray,
                 label = "Límite de Pago",
-                sublabel = "Vence en 2 días", // Esto lo haremos dinámico después
-                value = "Oct ${card.dueDay}",
-                isUrgent = true
+                sublabel = if (daysUntilDue == 0) "Vence hoy" else "Vence en $daysUntilDue días",
+                value = "$currentMonth ${card.dueDay}",
+                isUrgent = isUrgent
             )
+
+            // INDICADOR DE NOTIFICACIONES (Nuevo)
+            Divider(modifier = Modifier.padding(horizontal = 16.dp), color = Color.LightGray.copy(alpha = 0.05f))
+
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Recordatorios", fontSize = 14.sp, color = Color.Gray)
+                Text(
+                    text = if (card.remindersActive) "ACTIVOS" else "DESACTIVADOS",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (card.remindersActive) DarkGreen else Color.Gray
+                )
+            }
         }
     }
 }
+
 
 @Composable
 fun DateRow(icon: ImageVector, iconBg: Color, iconTint: Color, label: String, sublabel: String, value: String, isUrgent: Boolean = false) {

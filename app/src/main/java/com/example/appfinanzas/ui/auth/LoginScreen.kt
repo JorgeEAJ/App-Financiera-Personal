@@ -17,7 +17,7 @@ import com.example.appfinanzas.data.firebase.UserRepository
 
 @Composable
 fun LoginScreen(onLoginSuccess: () -> Unit, onNavigateToSignUp: () -> Unit) {
-    var email by remember { mutableStateOf("") }
+    var identifier by remember { mutableStateOf("") } // Cambiado de 'email' a 'identifier'
     var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
@@ -26,20 +26,17 @@ fun LoginScreen(onLoginSuccess: () -> Unit, onNavigateToSignUp: () -> Unit) {
     val repository = UserRepository()
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
+        modifier = Modifier.fillMaxSize().padding(24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(text = "Mi App de Finanzas", style = MaterialTheme.typography.headlineLarge)
-
         Spacer(modifier = Modifier.height(32.dp))
 
         OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Correo electrónico") },
+            value = identifier,
+            onValueChange = { identifier = it },
+            label = { Text("Usuario o Correo electrónico") }, // Etiqueta más clara
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -51,12 +48,9 @@ fun LoginScreen(onLoginSuccess: () -> Unit, onNavigateToSignUp: () -> Unit) {
             label = { Text("Contraseña") },
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
-                val image = if (passwordVisible)
-                    Icons.Filled.Visibility
-                else Icons.Filled.VisibilityOff
-
+                val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                    Icon(imageVector = image, contentDescription = "Mostrar contraseña")
+                    Icon(imageVector = image, contentDescription = null)
                 }
             },
             modifier = Modifier.fillMaxWidth()
@@ -71,30 +65,22 @@ fun LoginScreen(onLoginSuccess: () -> Unit, onNavigateToSignUp: () -> Unit) {
         if (isLoading) {
             CircularProgressIndicator()
         } else {
-            Button(onClick = {
-                if (email.isBlank() || password.isBlank()) {
-                    errorMessage = "Por favor, completa todos los campos"
-                    return@Button
-                }
-
-                if (password.length < 6) {
-                    errorMessage = "La contraseña debe tener al menos 6 caracteres"
-                    return@Button
-                }
-
-                isLoading = true
-                errorMessage = null
-
-                repository.loginUser(email, password) { success, error ->
-                    isLoading = false
-                    if (success) {
-                        onLoginSuccess()
-                    } else {
-                        errorMessage = error ?: "Error desconocido"
+            Button(
+                onClick = {
+                    if (identifier.isBlank() || password.isBlank()) {
+                        errorMessage = "Completa los campos"
+                        return@Button
                     }
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
+                    isLoading = true
+                    errorMessage = null
+
+                    // USAMOS LA NUEVA LÓGICA DE BÚSQUEDA
+                    repository.loginWithEmailOrName(identifier, password) { success, error ->
+                        isLoading = false
+                        if (success) onLoginSuccess() else errorMessage = error
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Iniciar Sesión")
             }

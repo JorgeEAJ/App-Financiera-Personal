@@ -118,7 +118,7 @@ fun SpendingBreakdownCard(total: Double, efectivo: Double, tarjetas: Map<String,
                     Text("TOTAL", fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             // Leyenda Categorias
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 slices.chunked(3).forEach { rowSlices ->

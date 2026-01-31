@@ -10,6 +10,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,12 +23,9 @@ import com.example.appfinanzas.ui.auth.SignUpScreen
 import com.example.appfinanzas.ui.dashboard.DashboardContent
 import com.example.appfinanzas.ui.theme.AppFinanzasTheme
 import com.google.firebase.auth.FirebaseAuth
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
 import androidx.navigation.compose.composable
-import com.example.appfinanzas.BottomNavBar
-import com.example.appfinanzas.Screen
 import com.example.appfinanzas.ui.wallet.WalletScreen
+import com.google.firebase.firestore.FirebaseFirestore
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,18 +33,34 @@ class MainActivity : ComponentActivity() {
         setContent {
             AppFinanzasTheme {
                 var currentScreen by remember { mutableStateOf("login") }
+                var userName by remember { mutableStateOf("Usuario") }
                 var isLoggedIn by remember {
                     mutableStateOf(FirebaseAuth.getInstance().currentUser != null)
                 }
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
+
+                // Cargar nombre cuando inicie sesión
+                LaunchedEffect(isLoggedIn) {
                     if (isLoggedIn) {
-                        MainApp(onLogout = {
-                            FirebaseAuth.getInstance().signOut()
-                            isLoggedIn = false
-                        })
+                        val uid = FirebaseAuth.getInstance().currentUser?.uid
+                        if (uid != null) {
+                            FirebaseFirestore.getInstance().collection("users")
+                                .document(uid)
+                                .addSnapshotListener { snapshot, _ ->
+                                    userName = snapshot?.getString("name") ?: "Usuario"
+                                }
+                        }
+                    }
+                }
+
+                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                    if (isLoggedIn) {
+                        MainApp(
+                            userName = userName,
+                            onLogout = {
+                                FirebaseAuth.getInstance().signOut()
+                                isLoggedIn = false
+                            }
+                        )
                     } else {
                         when (currentScreen) {
                             "login" -> LoginScreen(
@@ -65,12 +79,14 @@ class MainActivity : ComponentActivity() {
     }
 }
 @Composable
-fun MainApp(onLogout: () -> Unit) {
+fun MainApp(userName: String,onLogout: () -> Unit) {
     val navController = rememberNavController()
 
     Scaffold(
+        topBar = {
+            TopAppBarCustom(userName,onLogout = onLogout)
+        },
         bottomBar = {
-            // El NavController DEBE pasarse aquí
             BottomNavBar(navController)
         }
     ) { innerPadding ->
@@ -81,9 +97,7 @@ fun MainApp(onLogout: () -> Unit) {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(Screen.Dashboard.route) {
-                DashboardContent(onLogout = {
-                    FirebaseAuth.getInstance().signOut()
-                })
+                DashboardContent()
             }
             composable(Screen.Wallet.route) {
                 WalletScreen()

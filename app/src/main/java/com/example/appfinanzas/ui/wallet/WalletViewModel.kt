@@ -22,4 +22,9 @@ class WalletViewModel : ViewModel() {
             cards = list
         }
     }
+    fun addCard(card: CreditCard) {
+        repository.saveCard(card) { success ->
+            if (success) loadCards()
+        }
+    }
 }

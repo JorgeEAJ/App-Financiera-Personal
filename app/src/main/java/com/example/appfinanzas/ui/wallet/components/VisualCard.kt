@@ -32,7 +32,7 @@ fun VisualCard(card: CreditCard) {
             .clip(RoundedCornerShape(20.dp))
             .background(Brush.linearGradient(listOf(card.colorStart, card.colorEnd)))
             .padding(24.dp)
-    ) {
+    ){
         // Icono de Contactless (Efecto opacidad)
         Icon(
             Icons.Default.Contactless,

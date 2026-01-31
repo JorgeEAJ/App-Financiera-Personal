@@ -34,6 +34,7 @@ import com.example.appfinanzas.data.firebase.UserRepository
 
 @Composable
 fun SignUpScreen(onSignUpSuccess: () -> Unit, onBackToLogin: () -> Unit) {
+    var name by remember { mutableStateOf("") } // NUEVO
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
@@ -48,15 +49,21 @@ fun SignUpScreen(onSignUpSuccess: () -> Unit, onBackToLogin: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(text = "Crear Cuenta", style = MaterialTheme.typography.headlineLarge)
-
         Spacer(modifier = Modifier.height(16.dp))
+
+        // CAMPO NOMBRE
+        OutlinedTextField(
+            value = name, onValueChange = { name = it },
+            label = { Text("Nombre de usuario") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedTextField(
             value = email, onValueChange = { email = it },
             label = { Text("Correo electrónico") },
             modifier = Modifier.fillMaxWidth()
         )
-
         Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedTextField(
@@ -65,19 +72,16 @@ fun SignUpScreen(onSignUpSuccess: () -> Unit, onBackToLogin: () -> Unit) {
             label = { Text("Contraseña (min. 6 caracteres)") },
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
-                val image = if (passwordVisible)
-                    Icons.Filled.Visibility
-                else Icons.Filled.VisibilityOff
-
+                val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                    Icon(imageVector = image, contentDescription = "Mostrar contraseña")
+                    Icon(imageVector = image, contentDescription = null)
                 }
             },
             modifier = Modifier.fillMaxWidth()
         )
 
         errorMessage?.let {
-            Text(text = it, color = MaterialTheme.colorScheme.error)
+            Text(text = it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp))
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -85,24 +89,20 @@ fun SignUpScreen(onSignUpSuccess: () -> Unit, onBackToLogin: () -> Unit) {
         if (isLoading) {
             CircularProgressIndicator()
         } else {
-            Button(onClick = {
-                if (email.isBlank() || password.isBlank()) {
-                    errorMessage = "Por favor, completa todos los campos"
-                    return@Button
-                }
-                if (password.length < 6) {
-                    errorMessage = "La contraseña debe tener al menos 6 caracteres"
-                    return@Button
-                }
-                isLoading = true
-                errorMessage = null
-
-                repository.signUpUser(email, password) { success, error ->
-                    isLoading = false
-                    if (success) onSignUpSuccess() else errorMessage = error ?: "Error desconocido"
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
+            Button(
+                onClick = {
+                    if (name.isBlank() || email.isBlank() || password.isBlank()) {
+                        errorMessage = "Por favor, completa todos los campos"
+                        return@Button
+                    }
+                    isLoading = true
+                    // LLAMADA AL NUEVO MÉTODO DEL REPOSITORY
+                    repository.signUpUser(email, password, name) { success, error ->
+                        isLoading = false
+                        if (success) onSignUpSuccess() else errorMessage = error
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Registrarme")
             }

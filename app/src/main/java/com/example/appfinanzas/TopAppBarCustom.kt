@@ -1,4 +1,4 @@
-package com.example.appfinanzas.ui.dashboard.components
+package com.example.appfinanzas
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -28,7 +28,7 @@ import com.example.appfinanzas.ui.theme.PrimaryGreen
 
 
 @Composable
-fun TopAppBarCustom(onLogout: () -> Unit) {
+fun TopAppBarCustom(userName: String,onLogout: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -42,7 +42,7 @@ fun TopAppBarCustom(onLogout: () -> Unit) {
                 Icon(Icons.Default.Person, contentDescription = null)
             }
             Spacer(modifier = Modifier.width(12.dp))
-            Text("Bienvenido", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Text(userName, fontWeight = FontWeight.Bold, fontSize = 18.sp)
         }
 
         // Grupo de botones a la derecha

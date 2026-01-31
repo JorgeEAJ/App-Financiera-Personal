@@ -15,6 +15,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,23 +29,34 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appfinanzas.data.model.CreditCard
 import com.example.appfinanzas.ui.theme.DarkGreen
 import com.example.appfinanzas.ui.theme.PrimaryGreen
+import com.example.appfinanzas.ui.wallet.components.AddCardDialog
 import com.example.appfinanzas.ui.wallet.components.CardDateDetails
 import com.example.appfinanzas.ui.wallet.components.VisualCard
 
 @Composable
 fun WalletScreen(viewModel: WalletViewModel = viewModel()) {
     val cards = viewModel.cards
+    var showDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { /* Aquí abriremos el diálogo para agregar */ },
+                onClick = { showDialog = true},
                 containerColor = PrimaryGreen
             ) {
                 Icon(Icons.Default.Add, contentDescription = null, tint = Color.Black)
             }
         }
     ) { padding ->
+        if (showDialog) {
+            AddCardDialog(
+                onDismiss = { showDialog = false },
+                onConfirm = { card ->
+                    viewModel.addCard(card)
+                    showDialog = false
+                }
+            )
+        }
         if (cards.isEmpty()) {
             // Mensaje si no hay tarjetas
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
