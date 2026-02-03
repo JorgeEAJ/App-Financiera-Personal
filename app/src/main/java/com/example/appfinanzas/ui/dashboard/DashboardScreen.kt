@@ -1,25 +1,25 @@
 package com.example.appfinanzas.ui.dashboard
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.appfinanzas.TopAppBarCustom
-import com.example.appfinanzas.ui.dashboard.components.MonthlySummary
 import com.example.appfinanzas.ui.dashboard.components.SpendingBreakdownCard
 import com.example.appfinanzas.ui.dashboard.components.QuickAddExpenseCard
 import com.example.appfinanzas.ui.dashboard.components.TransactionItem
-import com.example.appfinanzas.ui.dashboard.components.AlertItem
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 
 @Composable
 fun DashboardContent(viewModel: DashboardViewModel = viewModel()) {
@@ -60,4 +60,12 @@ fun DashboardContent(viewModel: DashboardViewModel = viewModel()) {
 
             Spacer(modifier = Modifier.height(24.dp))
         }
+}
+@SuppressLint("DefaultLocale")
+@Composable
+fun MonthlySummary(amount: Double) {
+    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+        Text("RESUMEN MENSUAL", fontSize = 12.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
+        Text("$${String.format("%,.2f", amount)}", fontSize = 40.sp, fontWeight = FontWeight.Bold)
+    }
 }

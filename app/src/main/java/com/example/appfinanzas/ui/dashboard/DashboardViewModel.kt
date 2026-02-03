@@ -1,21 +1,27 @@
 package com.example.appfinanzas.ui.dashboard
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.House
+import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
+import com.example.appfinanzas.data.firebase.CategoryRepository
 import com.example.appfinanzas.data.firebase.TransactionRepository
 import com.example.appfinanzas.data.firebase.WalletRepository
+import com.example.appfinanzas.data.model.Category
 import com.example.appfinanzas.data.model.CreditCard
 import com.example.appfinanzas.data.model.Transaction
 
 class DashboardViewModel : ViewModel() {
     private val repository = TransactionRepository()
     private val repositoryCards = WalletRepository()
-
-    // Estados para la UI
     var isLoading by mutableStateOf(false)
     var transactionSuccess by mutableStateOf(false)
     var errorMessage by mutableStateOf<String?>(null)
@@ -29,10 +35,19 @@ class DashboardViewModel : ViewModel() {
     var totalExpenses by mutableDoubleStateOf(0.0)
     var walletCards by mutableStateOf<List<CreditCard>>(emptyList())
         private set
+    var categories by mutableStateOf<List<Category>>(emptyList())
+    private val repo = CategoryRepository()
 
     init {
         loadTransactions()
         loadUserCards()
+        repo.getCategories { list ->
+            if (list.isEmpty()) {
+                setupDefaultCategories()
+            } else {
+                categories = list
+            }
+        }
     }
 
     private fun loadTransactions() {
@@ -100,6 +115,30 @@ class DashboardViewModel : ViewModel() {
     private fun loadUserCards() {
         repositoryCards.getCards { list ->
             walletCards = list
+        }
+    }
+    private fun setupDefaultCategories() {
+        val defaults = listOf(
+            Category(name = "Comida", iconName = "Restaurant"),
+            Category(name = "Transporte", iconName = "DirectionsCar"),
+            Category(name = "Compras", iconName = "ShoppingBag")
+        )
+        defaults.forEach { repo.addCategory(it) }
+    }
+    fun addCategory(name: String) {
+        repo.addCategory(Category(name = name, iconName = "Payments"))
+    }
+    fun removeCategory(category: Category) {
+        repo.deleteCategory(category.id)
+    }
+    // Función auxiliar para convertir el nombre de Firebase al icono real
+    fun getIconFromName(name: String): ImageVector {
+        return when (name) {
+            "Restaurante" -> Icons.Default.Restaurant
+            "Carro" -> Icons.Default.DirectionsCar
+            "Compras" -> Icons.Default.ShoppingBag
+            "Casa" -> Icons.Default.House
+            else -> Icons.Default.Payments
         }
     }
 }

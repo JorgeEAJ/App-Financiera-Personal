@@ -1,4 +1,4 @@
-package com.example.appfinanzas.ui.dashboard
+package com.example.appfinanzas.data.model
 
 import androidx.compose.ui.graphics.Color
 

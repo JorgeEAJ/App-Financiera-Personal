@@ -1,6 +1,9 @@
 package com.example.appfinanzas.ui.dashboard.components
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,12 +18,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CreditCard
-import androidx.compose.material.icons.filled.DirectionsCar
-import androidx.compose.material.icons.filled.House
 import androidx.compose.material.icons.filled.Payments
-import androidx.compose.material.icons.filled.Restaurant
-import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -63,13 +63,8 @@ fun QuickAddExpenseCard(viewModel: DashboardViewModel) {
     val walletCards = viewModel.walletCards
     var selectedCardId by remember { mutableStateOf("") }
     var transactionType by remember { mutableStateOf("expense") }
-
-    val categories = listOf(
-        "Comida" to Icons.Default.Restaurant,
-        "Transporte" to Icons.Default.DirectionsCar,
-        "Compras" to Icons.Default.ShoppingBag,
-        "Renta" to Icons.Default.House
-    )
+    var showAddDialog by remember { mutableStateOf(false) }
+    var newCategoryName by remember { mutableStateOf("") }
 
     LaunchedEffect(viewModel.transactionSuccess) {
         if (viewModel.transactionSuccess) {
@@ -177,12 +172,27 @@ fun QuickAddExpenseCard(viewModel: DashboardViewModel) {
                     modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(bottom = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    categories.forEach { (name, icon) ->
+                    viewModel.categories.forEach { category ->
                         CategoryChip(
-                            label = name,
-                            icon = icon,
-                            selected = selectedCategory == name,
-                            onClick = { selectedCategory = name }
+                            label = category.name,
+                            icon = viewModel.getIconFromName(category.iconName),
+                            selected = selectedCategory == category.name,
+                            onClick = { selectedCategory = category.name },
+                            onLongClick = { viewModel.removeCategory(category) }
+                        )
+                    }
+                    // Botón para añadir nueva categoría
+                    Surface(
+                        modifier = Modifier.clickable { showAddDialog = true },
+                        color = MaterialTheme.colorScheme.background,
+                        shape = CircleShape,
+                        border = BorderStroke(1.dp, PrimaryGreen)
+                    ) {
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = "Añadir",
+                            modifier = Modifier.padding(8.dp).size(20.dp),
+                            tint = PrimaryGreen
                         )
                     }
                 }
@@ -213,13 +223,42 @@ fun QuickAddExpenseCard(viewModel: DashboardViewModel) {
                 )
             }
         }
+        // Dialogo para nueva categoría
+        if (showAddDialog) {
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = { showAddDialog = false },
+                title = { Text("Nueva Categoría") },
+                text = {
+                    TextField(
+                        value = newCategoryName,
+                        onValueChange = { newCategoryName = it },
+                    )
+                },
+                confirmButton = {
+                    Button(onClick = {
+                        viewModel.addCategory(newCategoryName)
+                        newCategoryName = ""
+                        showAddDialog = false
+                    }) { Text("Agregar") }
+                }
+            )
+        }
     }
 }
-
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun CategoryChip(label: String, icon: ImageVector, selected: Boolean = false, onClick: () -> Unit) {
+fun CategoryChip(
+    label: String,
+    icon: ImageVector,
+    selected: Boolean = false,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit
+) {
     Surface(
-        modifier = Modifier.clickable { onClick() },
+        modifier = Modifier.combinedClickable(
+            onClick = onClick,
+            onLongClick = onLongClick
+        ),
         color = if (selected) PrimaryGreen else MaterialTheme.colorScheme.background,
         shape = CircleShape,
         border = if (!selected) androidx.compose.foundation.BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.3f)) else null
@@ -228,7 +267,7 @@ fun CategoryChip(label: String, icon: ImageVector, selected: Boolean = false, on
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(16.dp), tint = if (selected) Color.Black else MaterialTheme.colorScheme.onSurface)
+            Icon(icon, null, modifier = Modifier.size(16.dp), tint = if (selected) Color.Black else MaterialTheme.colorScheme.onSurface)
             Spacer(modifier = Modifier.width(8.dp))
             Text(label, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = if (selected) Color.Black else MaterialTheme.colorScheme.onSurface)
         }
