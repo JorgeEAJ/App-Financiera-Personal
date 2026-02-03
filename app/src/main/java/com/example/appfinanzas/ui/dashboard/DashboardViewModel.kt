@@ -18,6 +18,7 @@ import com.example.appfinanzas.data.firebase.WalletRepository
 import com.example.appfinanzas.data.model.Category
 import com.example.appfinanzas.data.model.CreditCard
 import com.example.appfinanzas.data.model.Transaction
+import java.util.Calendar
 
 class DashboardViewModel : ViewModel() {
     private val repository = TransactionRepository()
@@ -134,11 +135,42 @@ class DashboardViewModel : ViewModel() {
     // Función auxiliar para convertir el nombre de Firebase al icono real
     fun getIconFromName(name: String): ImageVector {
         return when (name) {
-            "Restaurante" -> Icons.Default.Restaurant
-            "Carro" -> Icons.Default.DirectionsCar
+            "Comida" -> Icons.Default.Restaurant
+            "Transporte" -> Icons.Default.DirectionsCar
             "Compras" -> Icons.Default.ShoppingBag
             "Casa" -> Icons.Default.House
             else -> Icons.Default.Payments
         }
     }
-}
+    var selectedMonth by mutableStateOf(Calendar.getInstance()) // Mes actual por defecto
+
+    fun changeMonth(delta: Int) {
+        val newMonth = selectedMonth.clone() as Calendar
+        newMonth.add(Calendar.MONTH, delta)
+        selectedMonth = newMonth
+        transactions = emptyList()
+
+        loadTransactionsForMonth()
+    }
+    fun loadTransactionsForMonth() {
+        val calendar = selectedMonth.clone() as Calendar
+
+        // Configurar al primer día del mes a las 00:00:00
+        calendar.set(Calendar.DAY_OF_MONTH, 1)
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        val startOfMonth = calendar.timeInMillis
+
+        // Configurar al último día del mes a las 23:59:59
+        calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH))
+        calendar.set(Calendar.HOUR_OF_DAY, 23)
+        calendar.set(Calendar.MINUTE, 59)
+        calendar.set(Calendar.SECOND, 59)
+        val endOfMonth = calendar.timeInMillis
+
+        // Llamar al repositorio con el rango de fechas
+        repository.getTransactionsByRange(startOfMonth, endOfMonth) { list ->
+            transactions = list.sortedByDescending { it.date }
+        }
+    }}

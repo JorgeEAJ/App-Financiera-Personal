@@ -35,4 +35,19 @@ class TransactionRepository {
             .addOnSuccessListener { onComplete(true) }
             .addOnFailureListener { onComplete(false) }
     }
+    fun getTransactionsByRange(start: Long, end: Long, onUpdate: (List<Transaction>) -> Unit) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+
+        FirebaseFirestore.getInstance()
+            .collection("transactions")
+            .whereEqualTo("userId", userId)
+            .whereGreaterThanOrEqualTo("date", start)
+            .whereLessThanOrEqualTo("date", end)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) return@addSnapshotListener
+
+                val list = snapshot?.toObjects(Transaction::class.java) ?: emptyList()
+                onUpdate(list)
+            }
+    }
 }

@@ -17,9 +17,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import com.example.appfinanzas.ui.dashboard.components.TransactionHistoryCard
 
 @Composable
 fun DashboardContent(viewModel: DashboardViewModel = viewModel()) {
@@ -38,26 +43,9 @@ fun DashboardContent(viewModel: DashboardViewModel = viewModel()) {
             )
 
             QuickAddExpenseCard(viewModel = viewModel)
-
             Spacer(modifier = Modifier.height(16.dp))
-            Card(
-                modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-            ) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    Text("Transacciones Recientes", fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(12.dp))
-                    if (viewModel.transactions.isEmpty()) {
-                        Text("No hay gastos aún", modifier = Modifier.padding(16.dp), color = Color.Gray)
-                    } else {
-                        viewModel.transactions.take(5).forEach { item ->
-                            TransactionItem(item, onDelete = { viewModel.deleteTransaction(item.id) })
-                        }
-                    }
-                }
-            }
 
+            TransactionHistoryCard(viewModel = viewModel)
             Spacer(modifier = Modifier.height(24.dp))
         }
 }

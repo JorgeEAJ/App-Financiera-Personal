@@ -18,9 +18,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,11 +30,22 @@ import com.example.appfinanzas.data.model.Transaction
 import com.example.appfinanzas.ui.theme.DarkGreen
 import com.example.appfinanzas.ui.theme.LightGreenBg
 import com.example.appfinanzas.ui.theme.PrimaryGreen
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 
 @SuppressLint("DefaultLocale")
 @Composable
-fun TransactionItem(transaction: Transaction, onDelete: () -> Unit) {
+fun TransactionItem(
+    transaction: Transaction,
+    onDelete: () -> Unit,
+    getIcon: (String) -> ImageVector
+) {
+    val dateLabel = remember(transaction.date) {
+        val sdf = SimpleDateFormat("dd MMM", Locale.getDefault())
+        sdf.format(Date(transaction.date))
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -46,14 +59,18 @@ fun TransactionItem(transaction: Transaction, onDelete: () -> Unit) {
                 .background(LightGreenBg, CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Default.ReceiptLong, contentDescription = null, tint = DarkGreen, modifier = Modifier.size(20.dp))
+            Icon(getIcon(transaction.categoryId), null, tint = DarkGreen, modifier = Modifier.size(20.dp))
         }
 
         Spacer(modifier = Modifier.width(12.dp))
 
         Column(modifier = Modifier.weight(1f)) {
             Text(transaction.categoryId, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-            Text(transaction.method.replaceFirstChar { it.uppercase() }, fontSize = 12.sp, color = Color.Gray)
+            Row {
+                Text(transaction.method.replaceFirstChar { it.uppercase() }, fontSize = 11.sp, color = Color.Gray)
+                Text(" • ", fontSize = 11.sp, color = Color.Gray)
+                Text(dateLabel, fontSize = 11.sp, color = Color.Gray)
+            }
         }
 
         val isIncome = transaction.type == "income"
