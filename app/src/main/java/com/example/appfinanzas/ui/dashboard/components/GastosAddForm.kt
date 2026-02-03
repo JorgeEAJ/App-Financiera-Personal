@@ -130,7 +130,7 @@ fun QuickAddExpenseCard(viewModel: DashboardViewModel) {
                 ),
                 shape = RoundedCornerShape(12.dp)
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             //Tab Gastos
             if (transactionType == "expense") {
@@ -160,20 +160,18 @@ fun QuickAddExpenseCard(viewModel: DashboardViewModel) {
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             walletCards.forEach { card ->
-                                val isSelected = selectedCardId == card.id
+                                val isSelected = selectedCardId == card.name
                                 InputChip(
                                     selected = isSelected,
-                                    onClick = { selectedCardId = card.id },
-                                    label = { Text("${card.bankName} •••• ${card.lastFourDigits}", fontSize = 12.sp) }
+                                    onClick = { selectedCardId = card.name },
+                                    label = { Text(card.name, fontSize = 12.sp) }
                                 )
                             }
                         }
                     }
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
                 Text("Categoría", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
-
+                Spacer(modifier = Modifier.height(12.dp))
                 // Chips de Categorías
                 Row(
                     modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(bottom = 16.dp),
@@ -189,7 +187,6 @@ fun QuickAddExpenseCard(viewModel: DashboardViewModel) {
                     }
                 }
             }
-
             // BOTÓN DE ACCIÓN
             Button(
                 onClick = {

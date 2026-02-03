@@ -17,7 +17,7 @@ class WalletRepository {
         }
         val cardsCollection = firestore.collection("users").document(userId).collection("cards")
         val newDoc = cardsCollection.document()
-        val finalCard = card.copy(id = newDoc.id)
+        val finalCard = card.copy(id = newDoc.id, userId = userId)
 
         newDoc.set(finalCard)
             .addOnSuccessListener { onComplete(true) }
@@ -32,5 +32,25 @@ class WalletRepository {
                 val cards = snapshot?.toObjects(CreditCard::class.java) ?: emptyList()
                 onUpdate(cards)
             }
+    }
+    fun deleteCard(cardId: String, onComplete: (Boolean) -> Unit) {
+        if (userId.isEmpty() || cardId.isEmpty()) return
+
+        firestore.collection("users").document(userId)
+            .collection("cards").document(cardId)
+            .delete()
+            .addOnCompleteListener { onComplete(it.isSuccessful) }
+    }
+    fun updateCard(card: CreditCard, onComplete: (Boolean) -> Unit) {
+        if (userId.isEmpty() || card.id.isEmpty()) {
+            onComplete(false)
+            return
+        }
+
+        // Apuntamos EXACTAMENTE al documento con el ID de la tarjeta
+        firestore.collection("users").document(userId)
+            .collection("cards").document(card.id)
+            .set(card)
+            .addOnCompleteListener { onComplete(it.isSuccessful) }
     }
 }

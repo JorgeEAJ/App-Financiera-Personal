@@ -1,5 +1,6 @@
 package com.example.appfinanzas.ui.wallet
 
+import android.os.Build
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -26,17 +27,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.appfinanzas.data.model.CreditCard
-import com.example.appfinanzas.ui.theme.DarkGreen
 import com.example.appfinanzas.ui.theme.PrimaryGreen
 import com.example.appfinanzas.ui.wallet.components.AddCardDialog
 import com.example.appfinanzas.ui.wallet.components.CardDateDetails
 import com.example.appfinanzas.ui.wallet.components.VisualCard
-
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun WalletScreen(viewModel: WalletViewModel = viewModel()) {
     val cards = viewModel.cards
     var showDialog by remember { mutableStateOf(false) }
+    val notificationPermissionState = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        rememberPermissionState(android.Manifest.permission.POST_NOTIFICATIONS)
+    } else {
+        null
+    }
 
     Scaffold(
         floatingActionButton = {
@@ -71,9 +78,29 @@ fun WalletScreen(viewModel: WalletViewModel = viewModel()) {
 
                 items(cards) { card ->
                     Column(modifier = Modifier.padding(bottom = 24.dp)) {
-                        VisualCard(card)
+                        VisualCard(
+                            card = card,
+                            onDeleteClick = { viewModel.deleteCard(card) }
+                        )
                         Spacer(modifier = Modifier.height(12.dp))
-                        CardDateDetails(card)
+                        CardDateDetails(
+                            card = card,
+                            onReminderChange = { isActive ->
+                                if (isActive) {
+                                    // Intentar pedir permiso (Android 13+)
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                        if (notificationPermissionState?.status?.isGranted == false) {
+                                            notificationPermissionState.launchPermissionRequest()
+                                        }
+                                    }
+                                    //Programar la notificación
+                                    viewModel.scheduleNotification(card)
+                                } else {
+                                    viewModel.cancelNotification(card.id)
+                                }
+                                viewModel.toggleReminders(card, isActive)
+                            }
+                        )
                     }
                 }
             }

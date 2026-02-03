@@ -12,7 +12,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Contactless
-import androidx.compose.material3.Surface
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.alpha
@@ -24,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun VisualCard(card: CreditCard) {
+fun VisualCard(card: CreditCard, onDeleteClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -33,6 +34,18 @@ fun VisualCard(card: CreditCard) {
             .background(Brush.linearGradient(listOf(card.colorStart, card.colorEnd)))
             .padding(24.dp)
     ){
+        // --- BOTÓN DE BORRAR ---
+        IconButton(
+            onClick = onDeleteClick,
+            modifier = Modifier.align(Alignment.TopEnd).offset(x = 12.dp, y = (-12).dp)
+        ) {
+            Icon(
+                Icons.Default.Delete,
+                contentDescription = "Borrar tarjeta",
+                tint = Color.White.copy(alpha = 0.8f),
+                modifier = Modifier.size(24.dp)
+            )
+        }
         // Icono de Contactless (Efecto opacidad)
         Icon(
             Icons.Default.Contactless,

@@ -7,7 +7,6 @@ data class Transaction(
     val amount: Double = 0.0,
     val type: String = "expense", // "income" o "expense"
     val date: Long = System.currentTimeMillis(),
-    val description: String = "",
-    val paymentMethod: String = "cash",
+    val method: String = "Efectivo",
     val creditCardId: String? = null,
 )

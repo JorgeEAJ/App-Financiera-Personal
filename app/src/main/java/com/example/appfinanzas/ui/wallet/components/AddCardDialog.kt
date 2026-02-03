@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -32,7 +33,9 @@ val cardColorOptions = listOf(
     Pair(Color(0xFFB71C1C), Color(0xFFEF5350)), // Rojo
     Pair(Color(0xFF212121), Color(0xFF757575))  // Negro
 )
-
+fun colorToHex(color: Color): String {
+    return String.format("#%08X", color.toArgb())
+}
 @Composable
 fun AddCardDialog(
     onDismiss: () -> Unit,
@@ -141,8 +144,8 @@ fun AddCardDialog(
                         expiryDate = expiry.chunked(2).joinToString("/"), // Lo guarda como MM/AA
                         cutOffDay = cutDayInt,
                         dueDay = dueDayInt,
-                        colorStartInt = selectedColors.first.value.toLong(),
-                        colorEndInt = selectedColors.second.value.toLong(),
+                        colorStartHex = colorToHex(selectedColors.first),
+                        colorEndHex = colorToHex(selectedColors.second),
                     )
                     onConfirm(newCard)
                 },

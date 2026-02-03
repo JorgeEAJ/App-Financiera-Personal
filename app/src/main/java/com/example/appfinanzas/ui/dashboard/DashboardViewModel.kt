@@ -39,7 +39,7 @@ class DashboardViewModel : ViewModel() {
         repository.getTransactions { list ->
             transactions = list.sortedByDescending { it.date }
             totalAmount = list.sumOf { it.amount }
-            creditAmount = list.filter { it.paymentMethod == "tarjeta" }.sumOf { it.amount }
+            creditAmount = list.filter { it.method == "tarjeta" }.sumOf { it.amount }
 
             // Calculamos sumas por tipo
             totalIncomes = list.filter { it.type == "income" }.sumOf { it.amount }
@@ -50,10 +50,10 @@ class DashboardViewModel : ViewModel() {
 
             // Filtramos solo gastos para la gráfica de dona
             val expenseList = list.filter { it.type == "expense" }
-            regularAmount = expenseList.filter { it.paymentMethod == "efectivo" }.sumOf { it.amount }
+            regularAmount = expenseList.filter { it.method == "efectivo" }.sumOf { it.amount }
 
             gastosPorTarjeta = expenseList
-                .filter { it.paymentMethod == "tarjeta" && it.creditCardId != null }
+                .filter { it.method == "tarjeta" && it.creditCardId != null }
                 .groupBy { it.creditCardId!! }
                 .mapValues { it.value.sumOf { amount -> amount.amount } }
         }
@@ -72,8 +72,8 @@ class DashboardViewModel : ViewModel() {
 
         val newTransaction = Transaction(
             amount = amountValue,
-            categoryId = category, // Aquí usamos el nombre por ahora
-            paymentMethod = method.lowercase(),
+            categoryId = category,
+            method = method.lowercase(),
             creditCardId = if (method == "Tarjeta") cardId else null,
             type = type
         )

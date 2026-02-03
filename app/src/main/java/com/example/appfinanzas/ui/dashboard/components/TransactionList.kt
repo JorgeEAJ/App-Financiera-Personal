@@ -53,7 +53,7 @@ fun TransactionItem(transaction: Transaction, onDelete: () -> Unit) {
 
         Column(modifier = Modifier.weight(1f)) {
             Text(transaction.categoryId, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-            Text(transaction.paymentMethod.replaceFirstChar { it.uppercase() }, fontSize = 12.sp, color = Color.Gray)
+            Text(transaction.method.replaceFirstChar { it.uppercase() }, fontSize = 12.sp, color = Color.Gray)
         }
 
         val isIncome = transaction.type == "income"

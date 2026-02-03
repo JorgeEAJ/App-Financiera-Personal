@@ -29,28 +29,40 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.appfinanzas.data.model.CreditCard
-import com.example.appfinanzas.ui.theme.DarkGreen
-import com.example.appfinanzas.ui.theme.PrimaryGreen
 import androidx.compose.ui.graphics.Color
-
-import java.util.Calendar
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 @Composable
-fun CardDateDetails(card: CreditCard) {
-    // LÓGICA DINÁMICA DE FECHAS
-    val calendar = Calendar.getInstance()
-    val currentDay = calendar.get(Calendar.DAY_OF_MONTH)
-    val currentMonth = calendar.getDisplayName(Calendar.MONTH, Calendar.SHORT, java.util.Locale.getDefault())
+fun CardDateDetails(
+    card: CreditCard,
+    onReminderChange: (Boolean) -> Unit
+) {
+    val today = LocalDate.now()
+    val currentYear = today.year
+    val currentMonthValue = today.monthValue
 
-    // Cálculo simple de días restantes para el pago
-    val daysUntilDue = if (card.dueDay >= currentDay) {
-        card.dueDay - currentDay
-    } else {
-        // Si ya pasó el día en este mes, calculamos para el siguiente (aproximado)
-        (30 - currentDay) + card.dueDay
+// Intentamos crear la fecha de pago para el mes actual
+    val dueDateThisMonth = try {
+        today.withDayOfMonth(card.dueDay.coerceIn(1, today.lengthOfMonth()))
+    } catch (e: Exception) {
+        today.withDayOfMonth(today.lengthOfMonth())
     }
 
+// Si la fecha de pago ya pasó este mes, calculamos la del próximo mes
+    val nextDueDate = if (today.isAfter(dueDateThisMonth)) {
+        val nextMonth = today.plusMonths(1)
+        nextMonth.withDayOfMonth(card.dueDay.coerceIn(1, nextMonth.lengthOfMonth()))
+    } else {
+        dueDateThisMonth
+    }
+
+// Calculamos la diferencia exacta en días
+    val daysUntilDue = ChronoUnit.DAYS.between(today, nextDueDate).toInt()
     val isUrgent = daysUntilDue <= 3
+    val dynamicThemeColor = card.colorStart
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -59,43 +71,57 @@ fun CardDateDetails(card: CreditCard) {
         border = BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.2f))
     ) {
         Column(modifier = Modifier.padding(8.dp)) {
-            // Fecha de Corte
+            // Fecha de Corte - Ahora usa el color de la tarjeta
             DateRow(
                 icon = Icons.Default.CalendarToday,
-                iconBg = PrimaryGreen.copy(alpha = 0.1f),
-                iconTint = DarkGreen,
+                iconBg = dynamicThemeColor.copy(alpha = 0.1f),
+                iconTint = dynamicThemeColor,
                 label = "Fecha de Corte",
                 sublabel = "Día ${card.cutOffDay} de cada mes",
-                value = "$currentMonth ${card.cutOffDay}"
+                value = "$currentMonthValue/ ${card.cutOffDay}"
             )
 
             Divider(modifier = Modifier.padding(horizontal = 16.dp), color = Color.LightGray.copy(alpha = 0.05f))
 
-            // Fecha de Pago Dinámica
+            // Fecha de Pago - Rojo si es urgente, sino usa el color de la tarjeta
             DateRow(
                 icon = Icons.Default.EventBusy,
-                iconBg = if (isUrgent) Color.Red.copy(alpha = 0.1f) else Color.Gray.copy(alpha = 0.1f),
-                iconTint = if (isUrgent) Color.Red else Color.Gray,
+                iconBg = if (isUrgent) Color.Red.copy(alpha = 0.1f) else dynamicThemeColor.copy(alpha = 0.1f),
+                iconTint = if (isUrgent) Color.Red else dynamicThemeColor,
                 label = "Límite de Pago",
                 sublabel = if (daysUntilDue == 0) "Vence hoy" else "Vence en $daysUntilDue días",
-                value = "$currentMonth ${card.dueDay}",
+                value = "$currentMonthValue/ ${card.dueDay}",
                 isUrgent = isUrgent
             )
 
-            // INDICADOR DE NOTIFICACIONES (Nuevo)
             Divider(modifier = Modifier.padding(horizontal = 16.dp), color = Color.LightGray.copy(alpha = 0.05f))
 
+            // SECCIÓN DE RECORDATORIOS CON SWITCH
             Row(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Recordatorios", fontSize = 14.sp, color = Color.Gray)
-                Text(
-                    text = if (card.remindersActive) "ACTIVOS" else "DESACTIVADOS",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (card.remindersActive) DarkGreen else Color.Gray
+                Column {
+                    Text("Recordatorios", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    Text(
+                        if (card.remindersActive) "Notificaciones activas" else "Notificaciones apagadas",
+                        fontSize = 12.sp,
+                        color = Color.Gray
+                    )
+                }
+
+                Switch(
+                    checked = card.remindersActive,
+                    onCheckedChange = { onReminderChange(it) },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color.White,
+                        checkedTrackColor = dynamicThemeColor,
+                        uncheckedThumbColor = Color.LightGray,
+                        uncheckedTrackColor = Color.LightGray.copy(alpha = 0.3f)
+                    )
                 )
             }
         }
@@ -120,6 +146,6 @@ fun DateRow(icon: ImageVector, iconBg: Color, iconTint: Color, label: String, su
                 Text(sublabel, fontSize = 12.sp, color = if (isUrgent) Color.Red else Color.Gray)
             }
         }
-        Text(value, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = if (isUrgent) Color.Red else Color.Black)
+        Text(value, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = if (isUrgent) Color.Red else Color.White)
     }
 }

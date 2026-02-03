@@ -58,28 +58,6 @@ fun DashboardContent(viewModel: DashboardViewModel = viewModel()) {
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Sección de Alertas
-            Column(modifier = Modifier.padding(bottom = 16.dp)) {
-                AlertItem(
-                    title = "Budget Limit Alert",
-                    subtitle = "You've used 85% of your food budget",
-                    amount = "$20 left",
-                    color = Color(0xFFE67E22),
-                    icon = Icons.Default.Warning
-                )
-
-                // Nueva Alerta de Pago agregada del HTML
-                AlertItem(
-                    title = "Payment Reminder",
-                    subtitle = "Credit Card due in 3 days",
-                    amount = "$850.00",
-                    color = Color(0xFF3498DB),
-                    icon = Icons.Default.CreditCard
-                )
-            }
-
             Spacer(modifier = Modifier.height(24.dp))
         }
 }
